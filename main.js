@@ -92,6 +92,10 @@ OPclient.on('message', (channel, tags, message, self) => {
 	if(tags.username === 'streamelements' && message.toLowerCase().includes('raffle has begun')) {
 		setTimeout(() => { OPclient.say(channel, `!join`); }, (Math.floor(Math.random() * 4) + 1) * 1000); 
 	}
+	
+	if(tags.username === 'streamlabs' && message.toLowerCase().includes('try smoking frog products')) {
+		setTimeout(() => { OPclient.say(channel, `peepoGlad SmokeTime `); }, Math.floor(Math.random()* 2000) + 100) ; 
+	}
 
 	if(tags.username.includes('hahah_ye5') && message.toLowerCase() ==='test') {
 		OPclient.say(channel, `test nodders`);
