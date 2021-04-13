@@ -120,7 +120,7 @@ OPclient.on('message', (channel, tags, message, self) => {
 		}
 	}
 	
-	if(message.toLowerCase().includes('paul')) {
+	if(message.toLowerCase().includes('pauldasdasdsa')) {
 		OPclient.say(channel, `ive gone to bed Sadge `);
 	}
 
