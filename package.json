@@ -1,0 +1,14 @@
+{
+  "name": "bots_wolfam",
+  "description": "PepeLa",
+  "license": "GPL-3.0-or-later",
+  "version": "0.1.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "tmi.js": "^1.7.5"
+  }
+}
