@@ -1,5 +1,6 @@
 require('dotenv').config();
 var rafflespam = false;
+var colorchanger = false;
 
 function getRandomColorHex() {
 	colors = ['Blue', 'BlueViolet', 'CadetBlue', 'Chocolate', 'Coral', 'DodgerBlue', 'Firebrick', 'GoldenRod', 'Green', 'HotPink', 'OrangeRed', 'Red', 'SeaGreen', 'SpringGreen', 'YellowGreen' ] 
@@ -81,6 +82,12 @@ client.on('message', (channel, tags, message, self) => {
 
 OPclient.on('message', (channel, tags, message, self) => {
 	if(self) return;
+	
+	// Code to change the user color each message if colorchanger is enabled
+	if(tags.username.includes('hahah_ye5') && colorchanger === true) {
+		color_ = getTrueRandomColorHex();
+		OPclient.say('hahah_ye5', `/color ${color_}`);
+	}
 
 	if(tags.username === 'streamelements' && message.toLowerCase().includes('raffle has begun')) {
 		setTimeout(() => { OPclient.say(channel, `!join`); }, (Math.floor(Math.random() * 4) + 1) * 1000); 
