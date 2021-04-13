@@ -1,6 +1,20 @@
 require('dotenv').config();
 var rafflespam = false;
 
+function getRandomColorHex() {
+	colors = ['Blue', 'BlueViolet', 'CadetBlue', 'Chocolate', 'Coral', 'DodgerBlue', 'Firebrick', 'GoldenRod', 'Green', 'HotPink', 'OrangeRed', 'Red', 'SeaGreen', 'SpringGreen', 'YellowGreen' ] 
+	return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function getTrueRandomColorHex() {
+    const colorLetters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += colorLetters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 const tmi = require('tmi.js');
 const client = new tmi.Client({
 	options: { debug: true, messagesLogLevel: "info" },
@@ -34,9 +48,6 @@ OPclient.connect().catch(console.error);
 client.on('message', (channel, tags, message, self) => {
 	if(self) return;
 	
-	if(message.toLowerCase().includes('katy')) {
-		client.say(channel, `@${tags.username}, Katy is a child`);
-	}
 	if(tags.username === 'streamelements' && message.toLowerCase().includes('raffle has begun for')) {
 		setTimeout(() => { client.say(channel, `!join`); }, (Math.floor(Math.random() * 4) + 1) * 1000); 
 	}
@@ -81,6 +92,28 @@ OPclient.on('message', (channel, tags, message, self) => {
 	if(!tags.username.includes('streamelements') && message.toLowerCase().includes('raffle has')) {
 	OPclient.say(channel, `!join ${tags.username}'s real raffle`);
 		setTimeout(() => { OPclient.say(channel, `Jebaited`); }, 3000); 
+	}
+	
+	if(tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().startsWith('!!colorchanger')){
+		if(colorchanger === true) {
+			colorchanger = false;
+		} else {
+			color_ = getTrueRandomColorHex();
+			OPclient.say('hahah_ye5', `/color ${color_}`);
+
+			if (message.toLowerCase().startsWith('!!colorchanger once')) { 
+				OPclient.say('hahah_ye5', `This is the new color: ${color_}`);
+			} else { 
+				colorchanger = true; 
+			}
+		}
+	}
+
+
+	if(tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().includes('wolfahalt bot')){
+		OPclient.say('hahah_ye5', ``);
+		OPclient.disconnect();
+		client.disconnect();
 	}
 	
 	
