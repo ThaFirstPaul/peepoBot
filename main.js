@@ -40,7 +40,7 @@ const OPclient = new tmi.Client({
 		username: 'hahah_ye5',
 		password: process.env.TWITCH_OAUTH_TOKEN_2,
 	},
-	channels: [ 'hahah_ye5' ]
+	channels: [ 'hahah_ye5' , 'wolfabelle' , 'grinikth' ]
 });
 
 client.connect().catch(console.error);
@@ -118,6 +118,10 @@ OPclient.on('message', (channel, tags, message, self) => {
 				colorchanger = true; 
 			}
 		}
+	}
+	
+	if(message.toLowerCase().includes('paul')) {
+		OPclient.say(channel, `ive gone to bed Sadge `);
 	}
 
 
