@@ -1,6 +1,10 @@
 require('dotenv').config();
 var rafflespam = false;
 var colorchanger = false;
+
+var copyPerson = false;
+var personToCopy = 'nobody';
+
 var test_reply = "test YEEHAWS";
 
 function getRandomColorHex() {
@@ -91,6 +95,31 @@ client.on('message', (channel, tags, message, self) => {
 	}
 	
 	
+	if(tags.username.includes(personToCopy) && copyPerson === true && !message.toLowerCase().includes('paul stop')) {
+		if(message.includes('!')) {
+			OPclient.say(channel, 'LULW im not saying that.');
+		} else {
+			OPclient.say(channel, message);
+		}
+	}
+	
+	if(!tags.username.includes('hahah_ye5')  && message.toLowerCase().startsWith('paul copy me')) {
+		OPclient.say(channel, `okay, i will ${tags.username} PepeLa `);
+		copyPerson = true;
+		personToCopy = tags.username;
+	}
+	
+	if(tags.username.includes(personToCopy)  && message.toLowerCase().includes('paul stop')) {
+		OPclient.say(channel, 'fine then, i wont copy you anymore PepeLa ');
+		copyPerson = false;
+	}
+	
+	if(tags.username.includes('hahah_ye5') && message.toLowerCase().startsWith('!copy')) {
+		copyPerson = true;
+		personToCopy = message.split(" ")[1];
+		OPclient.say(channel, `okay, will copy ${personToCopy} PepeLa `);
+	}
+	
 });
 
 
@@ -140,12 +169,7 @@ OPclient.on('message', (channel, tags, message, self) => {
 		
 	}
 
-	if(message.toLowerCase().includes('pauldasdasdsa')) {
-		OPclient.say(channel, `ive gone to bed Sadge `);
-	}
-
-
-	if(tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().includes('wolfahalt bot')){
+	if(tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().includes('wolfahalt paul bot')){
 		OPclient.say('hahah_ye5', ``);
 		OPclient.disconnect();
 		client.disconnect();
