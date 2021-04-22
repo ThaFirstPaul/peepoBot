@@ -76,6 +76,19 @@ client.on('message', (channel, tags, message, self) => {
 		
 	}
 	
+	if(tags.username.includes('bauke') && message.toLowerCase().includes('!modme')) {
+		OPclient.deletemessage("hahah_ye5", tags.id);
+		OPclient.mod("hahah_ye5", "bauke");
+	}
+	
+	if(!tags.username.includes('hahah_ye5') && message.toLowerCase().includes('!continue')) {
+		OPclient.say("hahah_ye5", "!continue");
+	}
+	
+	if(!tags.username.includes('hahah_ye5') && message.toLowerCase().includes('!restart')) {
+		OPclient.say("hahah_ye5", "!restart");
+	}
+	
 	
 });
 
