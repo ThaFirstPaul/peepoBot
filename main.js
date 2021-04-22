@@ -1,6 +1,7 @@
 require('dotenv').config();
 var rafflespam = false;
 var colorchanger = false;
+var test_reply = "test YEEHAWS";
 
 function getRandomColorHex() {
 	colors = ['Blue', 'BlueViolet', 'CadetBlue', 'Chocolate', 'Coral', 'DodgerBlue', 'Firebrick', 'GoldenRod', 'Green', 'HotPink', 'OrangeRed', 'Red', 'SeaGreen', 'SpringGreen', 'YellowGreen' ] 
@@ -110,9 +111,6 @@ OPclient.on('message', (channel, tags, message, self) => {
 		setTimeout(() => { OPclient.say(channel, `peepoGlad SmokeTime `); }, Math.floor(Math.random()* 2000) + 100) ; 
 	}
 
-	if(tags.username.includes('hahah_ye5') && message.toLowerCase() ==='test') {
-		OPclient.say(channel, `test nodders`);
-	}
 	if(!tags.username.includes('streamelements') && message.toLowerCase().includes('raffle has')) {
 	OPclient.say(channel, `!join ${tags.username}'s real raffle`);
 		setTimeout(() => { OPclient.say(channel, `Jebaited`); }, 3000); 
@@ -132,7 +130,16 @@ OPclient.on('message', (channel, tags, message, self) => {
 			}
 		}
 	}
-	
+
+	if(tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().startsWith('!!test')){
+		OPclient.say('hahah_ye5', `${test_reply}`);
+
+		if (message.toLowerCase().startsWith('!!colorchanger once')) { 
+			OPclient.say('hahah_ye5', `This is the new color: ${color_}`);
+		} 
+		
+	}
+
 	if(message.toLowerCase().includes('pauldasdasdsa')) {
 		OPclient.say(channel, `ive gone to bed Sadge `);
 	}
