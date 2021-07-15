@@ -19,7 +19,9 @@ var test_reply = "test YEEHAWS";
 var enable_leds = false;
 var leds_color = 'unknown';
 
-var homies = ["idrksowhatever", "bauke", "beekay5", "whekau", "nyyxx10", "potatoesareus", "d_o_u_g_h_n_u_t", "jadescatalog", "hexiaq", "maximus6216", "leoz_13"];
+var WOS_enabled = false;
+
+var homies = process.env.HOMIES_LIST;
 
 function getRandomColorHex() {
 	colors = ['Blue', 'BlueViolet', 'CadetBlue', 'Chocolate', 'Coral', 'DodgerBlue', 'Firebrick', 'GoldenRod', 'Green', 'HotPink', 'OrangeRed', 'Red', 'SeaGreen', 'SpringGreen', 'YellowGreen' ] 
@@ -86,19 +88,10 @@ client.on("connected", (OPclient, port) => {
     client.say("hahah_ye5", `[INFO] hannahbot is back online HandsUp`);
 });
 
-OPclient.on("timeout", (channel, username, reason, duration, userstate) => {
-	if(self) return;
-	
-	if (homies.includes(username.toLowerCase())){
-		OPclient.timeout("hahah_ye5", username, 1);
-	}
-});
-
-
 client.on('message', (channel, tags, message, self) => {
 	if(self) return;
 
-	if(tags.username.includes('hahah_ye5') &&
+	if(tags.username.toLowerCase() ==='hahah_ye5' &&
 	 colorchanger && !(/(colourchanger|colorchanger|cc)/).test(message.toLowerCase())
 	 ) {
 		lastcolor = newcolor;
@@ -110,44 +103,47 @@ client.on('message', (channel, tags, message, self) => {
 });
 
 OPclient.on('message', (channel, tags, message, self) => {
-	if(tags.username.includes('hannah_yee5')) return;
+	if(tags.username.toLowerCase() === 'hannah_yee5') return;
 
 	// hannahbot status
-	if((/\!(hannahbot|hhb) status/).test(message.toLowerCase())) {
-		if (!bot_enabled){
-			client.say(channel, `[INFO] hannahbot is disabled, please ask paul to enable it. FeelsBadMan `);
-			return;
-		} else {
-			client.say(channel, `[INFO] hannahbot is up and running, use "!hannahbot help" for a list of commands. peepoHappy `);
-			return;
-		}
+	if((/^(\!hannahbot|\!hhb|hhb) (i|info|uptime|status|version)/).test(message.toLowerCase())) {
+		client.say(channel, `[INFO] hannahbot v1.0.5. - I was born 54 days ago. - Currently enabled - Uptime: ${Math.round((Date.now()-last_restart)/60000)} minutes FeelsStrongMan `);
+		return;
 	}
 
 	// Enable hannahbot 
-	if(tags.username.toLowerCase() ==='hahah_ye5' && (/\!(hannahbot|hhb) (en|enable|on)/).test(message.toLowerCase()) && !bot_enabled) {
+	if(tags.username.toLowerCase() ==='hahah_ye5' && (/^(\!hannahbot|\!hhb|hhb) (enable|on)/).test(message.toLowerCase()) && !bot_enabled) {
 		client.say("hahah_ye5", `[INFO] hannahbot is back online HandsUp`);
 		bot_enabled = true;
 		return;
 	}
 
 	// Disable hannahbot 
-	if(tags.username.toLowerCase() ==='hahah_ye5' && (/\!(hannahbot|hhb) (dis|disable|off)/).test(message.toLowerCase()) && bot_enabled){
+	if(tags.username.toLowerCase() ==='hahah_ye5' && (/^(\!hannahbot|\!hhb|hhb) (disable|off)/).test(message.toLowerCase()) && bot_enabled){
 		client.say('hahah_ye5', `[INFO] hannahbot disabled FeelsBadMan `);
 		bot_enabled = false;
 		return;
 	}
 
-	if (!bot_enabled) {return;}
 
-	// hannahbot info
-	if((/\!(hannahbot|hhb) (i|info)/).test(message.toLowerCase())) {
-		client.say(channel, `[INFO] hannahbot v1.0.4. - I was born 54 days ago. - Uptime: ${Math.round((Date.now()-last_restart)/60000)} minutes FeelsStrongMan `);
+	// Check if hannahbot is active, if yes continue
+	if (!bot_enabled) {
+		client.say(channel, `[INFO] hannahbot is disabled, please ask paul to enable it. FeelsBadMan `);
+		return;
+	}
+
+	// creates array of args from the given command eg. !hhb list -> ['!hhb', 'list']
+	const command_args = message.toLowerCase().split(" ");
+
+	// hannahbot 
+	if(command_args.length < 2 && (/^(\!hannahbot|\!hhb|hhb)/).test(message.toLowerCase())){
+		client.say(channel, `[INFO] Hi! I'm hannahbot, use "!hannahbot help" for a list of commands. peepoHappy `);
 		return;
 	}
 
 	// Lists commands / usage
-	if(/\!(hannahbot|hhb) (commands|help|list|\?)/.test(message.toLowerCase())) {
-		if (tags.username.includes('hahah_ye5')) {
+	if(/^(\!hannahbot|\!hhb|hhb) (commands|help|list|\?)/.test(message.toLowerCase())) {
+		if (tags.username.toLowerCase() ==='hahah_ye5') {
 			client.say("hahah_ye5", "[INFO] Usage: !hannahbot (channels | colorchanger | commands | copy | disable | enable | info | led | messageuuid | status)");
 			return;
 		} else {
@@ -157,74 +153,60 @@ OPclient.on('message', (channel, tags, message, self) => {
 	}
 
 	// Messageuuid test
-	if((/\!(hannahbot|hhb) messageuuid/).test(message.toLowerCase())) {
+	if((/^(\!hannahbot|\!hhb|hhb) messageuuid/).test(message.toLowerCase())) {
 		client.say(channel, `${tags.id}`);
 		return;
 	}
 	
 	// Words on Stream
-	if(!tags.username.includes('hahah_ye5') && message.toLowerCase().includes('!continue')) {
+	if(!tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().includes('!continue') && WOS_enabled) {
 		OPclient.say("hahah_ye5", "!continue");
 		return;
 	}
-	if(!tags.username.includes('hahah_ye5') && message.toLowerCase().includes('!restart')) {
+
+	if(!tags.username.toLowerCase() ==='hahah_ye5' && message.toLowerCase().includes('!restart') && WOS_enabled) {
 		OPclient.say("hahah_ye5", "!restart");
 		return;
 	}
 
+	if(tags.username.toLowerCase() ==='hahah_ye5' && (/^(\!hannahbot|\!hhb|hhb) wos/).test(message.toLowerCase())){
+		if (command_args[2] === 'disable') {
+			WOS_enabled = false;
+			client.say('hahah_ye5', `[WOS] Command has been disabled.`);
+			return;
+		} else if (){
+			WOS_enabled = true;
+			client.say('hahah_ye5', `[WOS] Command is enabled. Usage: !continue and !restart`);
+			return;
+		}
+	}
+
+
 	// channels commands
-	if(tags.username.includes('hahah_ye5') && (/\!(hannahbot|hhb) channels/).test(message.toLowerCase())){
-		var channelscommand = message.toLowerCase().split(" ");
+	if(tags.username.toLowerCase() ==='hahah_ye5' && (/^(\!hannahbot|\!hhb|hhb) channels/).test(message.toLowerCase())){
 		
-		if (channelscommand.length < 3){
+		if (command_args.length < 3){
 			//client.say("hahah_ye5", `[CHN] I have whispered you the channels I am in, @${tags.username} peepoHappy `);
-			client.say("hahah_ye5", `[CHN] I'm currently in ${String(client.getChannels()).split(",").length} channels. Join another with ${channelscommand[0]} channels join {channel} peepoGlad  `)
+			client.say("hahah_ye5", `[CHN] I'm currently in ${String(client.getChannels()).split(",").length} channels. Join another with ${command_args[0]} channels join {channel} peepoGlad  `)
 			return;
 		} else {
-			if (channelscommand[2] === "join") {
-				if (channelscommand.length < 4){
+			if (command_args[2] === "join") {
+				if (command_args.length < 4){
 					client.say('hahah_ye5', `[CHN] Please supply a channel name!`);
 					return;
 				} else {
-					client.say('hahah_ye5', `[CHN] I'm trying to join ${channelscommand[3]}'s channel`);
-					client.join(channelscommand[3].trim());
+					client.say('hahah_ye5', `[CHN] I'm trying to join ${command_args[3]}'s channel`);
+					client.join(command_args[3].trim());
 					return;				
 				}
 			} 
 		}
 	}
 	
-	// Chat copy commands
-	if(tags.username.includes(personToCopy) && copyPerson === true && !message.toLowerCase().includes('hannah stop')) {
-		if(message.startsWith('!')) {
-			hannah_copy_client.say(channel, 'LULW im not saying that.');
-		} else {
-			hannah_copy_client.say(channel, `${message}`); 
-		}
-	}
 	
-	if(tags.username.includes('hahah_ye5') && message.toLowerCase().startsWith('!copy')) {
-		copyPerson = true;
-		personToCopy = message.split(" ")[1];
-		hannah_copy_client.say(channel, `okay, will copy ${personToCopy} PepeLa `);
-	}
-	
-	if(!tags.username.includes('hannah_yee5')  && message.toLowerCase().startsWith('hannah copy me')) {
-		hannah_copy_client.say(channel, `okay, i will ${tags.username} PepeLa stop this with "hannah stop" peepoGlad `);
-		copyPerson = true;
-		personToCopy = tags.username;
-	}
-	
-	if(tags.username.includes(personToCopy)  && message.toLowerCase().includes('hannah stop')) {
-		hannah_copy_client.say(channel, 'fine then, i wont copy you anymore PepeLa ');
-		copyPerson = false;
-	}
-	
-
 	// Colorchanger
-	if(tags.username.toLowerCase() ==='hahah_ye5' && /\!(hannahbot|hhb) (colourchanger|colorchanger|cc)/.test(message.toLowerCase())){
-		var colorchangercommand = message.toLowerCase().split(" ");
-		if (colorchangercommand.length < 3){
+	if(tags.username.toLowerCase() ==='hahah_ye5' && /^(\!hannahbot|\!hhb|hhb) (colourchanger|colorchanger|cc)/.test(message.toLowerCase())){
+		if (command_args.length < 3){
 			if(colorchanger === true) {
 				colorchanger = false;
 				client.say('hahah_ye5', `[CC] Colorchanger disabled.`);
@@ -235,19 +217,19 @@ OPclient.on('message', (channel, tags, message, self) => {
 				colorchanger = true;
 			}
 		} else {
-			if (/(single|once|one)/.test(colorchangercommand[2].toLowerCase())) { 
+			if (/(single|once|one)/.test(command_args[2].toLowerCase())) { 
 				colorchanger = false;
 				color_ = getTrueRandomColorHex();
 				lastcolor = color_;
 				OPclient.say('hahah_ye5', `/color ${color_}`);
 				client.say('hahah_ye5', `[CC] This is your new color: ${color_}`);
 			} else { 
-				if (/(last(|col|colour|color)|cur(|r|rent))/.test(colorchangercommand[2].toLowerCase())) {
+				if (/(last(|col|colour|color)|cur(|r|rent))/.test(command_args[2].toLowerCase())) {
 					client.say('hahah_ye5', `[CC] Your last color was: ${lastcolor}`);
 				} else { 
-					if (/(set|select)/.test(colorchangercommand[2].toLowerCase())) {
-						if (colorchangercommand.length < 4){ return; }
-						color_ = colorchangercommand[3];
+					if (/(set|select)/.test(command_args[2].toLowerCase())) {
+						if (command_args.length < 4){ return; }
+						color_ = command_args[3];
 						OPclient.say('hahah_ye5', `/color ${color_}`);
 						client.say('hahah_ye5', `[CC] This is your new color: ${color_}`);
 					}
@@ -257,35 +239,34 @@ OPclient.on('message', (channel, tags, message, self) => {
 	}
 
 	// test command
-	if(tags.username.toLowerCase() ==='hahah_ye5' && (/\!(hannahbot|hhb) test/).test(message.toLowerCase())){
+	if(tags.username.toLowerCase() ==='hahah_ye5' && (/^(\!hannahbot|\!hhb|hhb) test/).test(message.toLowerCase())){
 		client.say('hahah_ye5', `[TEST] ${test_reply}`);
 	}
 
 	// // LED commands
 
 	// Enable/disable
-	if(/\!(hannahbot|hhb) led/.test(message.toLowerCase())){
-		var ledcommand = message.toLowerCase().split(" ");
-		if (ledcommand.length < 3){
+	if(/^(\!hannahbot|\!hhb|hhb) led/.test(message.toLowerCase())){
+		if (command_args.length < 3){
 			if(enable_leds) {
-				client.say('hahah_ye5', `[LED] LED Command is enabled. Usage: !led {colour}`);
+				client.say('hahah_ye5', `[LED] Command is enabled. Usage: !led {colour}`);
 			} else {
-				client.say('hahah_ye5', `[LED] LED Command currently disabled.`);
+				client.say('hahah_ye5', `[LED] Command currently disabled.`);
 			}
 		} else {
 			if (tags.username.toLowerCase() ==='hahah_ye5') {
-				if (/(enable|on)/.test(ledcommand[2].toLowerCase())){
+				if (/(enable|on)/.test(command_args[2].toLowerCase())){
 					enable_leds = true;
-					client.say('hahah_ye5', `[LED] LED Command has been enabled. Usage: !led {colour}`);
-				} else if (/(disable|off)/.test(ledcommand[2].toLowerCase())){
+					client.say('hahah_ye5', `[LED] Command has been enabled. Usage: !led {colour}`);
+				} else if (/(disable|off)/.test(command_args[2].toLowerCase())){
 					enable_leds = false;
-					client.say('hahah_ye5', `[LED] LED Command has been disabled.`);
+					client.say('hahah_ye5', `[LED] Command has been disabled.`);
 				}
 			} 
 		}
 	}
 
-	if((enable_leds || tags.username.toLowerCase() ==='hahah_ye5')  && /\!led yourm(u|o)m/.test(message.toLowerCase())){
+	if((enable_leds || tags.username.toLowerCase() ==='hahah_ye5')  && /^\!led yourm(u|o)m/.test(message.toLowerCase())){
 		if(tags.username.toLowerCase() ==='beekay5'){
 			client.say('hahah_ye5', `[LED] Paul's LED's set to: yourmom`);
 			leds_color = "yourmom";
@@ -318,19 +299,22 @@ OPclient.on('message', (channel, tags, message, self) => {
 	}
 
 	// LIGHT CONTROL
-	if((enable_leds || tags.username.toLowerCase() ==='hahah_ye5') && message.toLowerCase().startsWith('!led')){
+	if(message.toLowerCase().startsWith('!led')){
+		if (!(tags.username.toLowerCase() ==='hahah_ye5'|| enable_leds)) {
+			client.say('hahah_ye5', `[LED] Command currently disabled.`);
+			return;
+		}
 		const ledSite = "http://192.168.100.24/win"
 		var custom_colors = {
 			cum: [69,69,69],
 			bauke: [105,19,55] // #691337
 		};
-		var colours_ = message.toLowerCase().split(" ");
-		if (colours_.length < 2){
+		if (command_args.length < 2){
 			client.say('hahah_ye5', `[LED] Current colour: ${leds_color} Usage: !led {colour}`);
 			return;
 		}
 
-		var colour_ = colours_[1];
+		var colour_ = command_args[1];
 		if (custom_colors[colour_] === undefined) {
 			colour_ = colorstring.get.rgb(colour_);
 		} else {
@@ -342,7 +326,7 @@ OPclient.on('message', (channel, tags, message, self) => {
 		
 		
 		if (colour_ === null) {
-			client.say('hahah_ye5', `[LED] Color ${colours_[1].replace("!","")} does not exist.`);
+			client.say('hahah_ye5', `[LED] Color ${command_args[1].replace("!","")} does not exist.`);
 		} else {
 			client.say('hahah_ye5', `[LED] Paul's LED's set to: ${colour_}`);
 			leds_color = `${colour_}`;
