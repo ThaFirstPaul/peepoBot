@@ -8,9 +8,7 @@
     "start": "node ."
   },
   "dependencies": {
-    "color-string": "^1.5.5",
     "dotenv": "^8.2.0",
-    "tmi.js": "^1.7.5",
-    "xmlhttprequest": "^1.8.0"
+    "tmi.js": "^1.7.5"
   }
 }
