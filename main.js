@@ -37,6 +37,33 @@ function getTrueRandomColorHex() {
     return color;
 }
 
+function proper_date(time_in_ms){
+	var seconds = "";
+	var mins = "";
+	var hours = "";
+	var days = "";
+	const time_in_s = Math.floor(time_in_ms/1000);
+
+	seconds = time_in_s%60;
+
+	if (time_in_s >59){
+		var mins_ = Math.floor(time_in_s/60)%60;
+		mins = `${mins_}m and `;
+	}
+
+	if (mins_ >59){
+		var hours_ = Math.floor(time_in_s/3600) % 60;
+		hours = `${hours_}h, `;
+	}
+
+	if (hours_ >23){
+		var days_ = Math.floor(time_in_s/86400)%60;
+		days = `${days_}d, `;
+	}
+
+	return `${days}${hours}${mins}${seconds}seconds`;
+}
+
 const tmi = require('tmi.js');
 const client = new tmi.Client({
 	options: { debug: true, messagesLogLevel: "info" },
@@ -107,7 +134,7 @@ OPclient.on('message', (channel, tags, message, self) => {
 
 	// hannahbot status
 	if((/^(\!hannahbot|\!hhb|hhb) (i|info|uptime|status|version)/).test(message.toLowerCase())) {
-		client.say(channel, `[INFO] hannahbot v1.0.5. - I was born 54 days ago. - Currently enabled - Uptime: ${Math.round((Date.now()-last_restart)/60000)} minutes FeelsStrongMan `);
+		client.say(channel, `[INFO] hannahbot v1.0.5. - I was born 54 days ago. - Currently enabled - Uptime: ${ proper_date(Date.now()-last_restart) } FeelsStrongMan `);
 		return;
 	}
 
@@ -124,13 +151,13 @@ OPclient.on('message', (channel, tags, message, self) => {
 		bot_enabled = false;
 		return;
 	}
-
-
 	// Check if hannahbot is active, if yes continue
 	if (!bot_enabled) {
 		client.say(channel, `[INFO] hannahbot is disabled, please ask paul to enable it. FeelsBadMan `);
 		return;
 	}
+
+
 
 	// creates array of args from the given command eg. !hhb list -> ['!hhb', 'list']
 	const command_args = message.toLowerCase().split(" ");
@@ -174,7 +201,7 @@ OPclient.on('message', (channel, tags, message, self) => {
 			WOS_enabled = false;
 			client.say('hahah_ye5', `[WOS] Command has been disabled.`);
 			return;
-		} else if (){
+		} else if (command_args[2] === 'enable'){
 			WOS_enabled = true;
 			client.say('hahah_ye5', `[WOS] Command is enabled. Usage: !continue and !restart`);
 			return;
