@@ -1,0 +1,34 @@
+{
+    "vars": {
+        "test_reply": "",
+        "fav_song": "",
+        "enable_leds": false
+    },
+    "channels": [
+    ],
+    "homies": [
+    ],
+    "commands_list": [
+        "channels",
+        "colorchanger",
+        "commands",
+        "disable",
+        "enable",
+        "favorite",
+        "info",
+        "led",
+        "messageuuid",
+        "modme",
+        "mycolor",
+        "test",
+        "vipme",
+        "wos"
+    ],
+    "reminders": [
+    ],
+    "last_command": {
+        "user": "",
+        "command": ""
+    },
+    "version": "beta 1.1"
+}
