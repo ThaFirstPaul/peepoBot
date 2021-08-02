@@ -105,3 +105,7 @@ dist
 
 # NPM package lock file
 package-lock.json
+package.json
+
+# hannahbot storage file
+hannahbot_storage.json
