@@ -8,11 +8,13 @@
     "start": "node ."
   },
   "dependencies": {
+    "color-string": "^1.6.0",
     "dotenv": "^8.2.0",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.0.2",
     "tmi.js": "^1.8.3",
-    "typeorm": "^0.2.34"
+    "typeorm": "^0.2.34",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "@types/node": "^16.4.0"
