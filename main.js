@@ -14,6 +14,8 @@ var leds_color = 'unknown';
 
 var bot_enabled = true;
 
+var reminder_timeout_id = undefined;
+
 var colorchanger = false;
 var lastcolor = "#FFFFFF";
 var newcolor = "#FFFFFF";
@@ -23,27 +25,56 @@ var personToCopy = 'nobody';
 
 var WOS_enabled = false;
 
-// an array of objects where each object is a channel that hannahbot is in 
+// an array of objects where each object is a channel that hannahbot is in
 var hannahbot_channels_last_message = [
-	{
-		channel:"hannah_ye5",
-		unicode_last_message:true
-	}
 ];
 
-var hannahbot_reminders = hannahbot_storage["reminders"];
+// Adds a reminder to the hannahbot storage
+function addreminder(channel, in_how_long, from_who, to_who, where_to_remind, when_to_remind, what_to_remind) {
+	reminder_to_add = {
+		"remindee": from_who,
+		"reminder": what_to_remind,
+		"remind_time": when_to_remind,
+		"remind_who": to_who,
+		"remind_where": where_to_remind
+	};
 
+	hannahbot_storage["reminders"].push(reminder_to_add);
+	hannahbot_storage.reminders = hannahbot_storage.reminders.sort((a, b) => a.remind_time - b.remind_time);
+	save_hannahbot_storage();
+	updatereminders();
+
+	if (from_who === to_who) { to_who = "you"; } else { to_who = "them" }
+	clientsay(channel, `[REM] Okay, I will remind ${to_who} in ${in_how_long}.`);
+	return;
+}
+
+// Loads the closest reminder into the timeout, if there is one
+function updatereminders(){
+	if (hannahbot_storage["reminders"].length < 1) return;
+	curr_reminder = hannahbot_storage["reminders"][0];
+	if (reminder_timeout_id !== undefined){ clearTimeout(reminder_timeout_id);}
+
+	reminder_timeout_id = setTimeout(() => {
+		if (curr_reminder["remindee"] === curr_reminder["remind_who"]) {
+			clientsay(curr_reminder["remind_where"],`[REM] @${curr_reminder["remind_who"]}, ${curr_reminder["reminder"]} - from yourself`);
+		} else {
+			clientsay(curr_reminder["remind_where"],`[REM] @${curr_reminder["remind_who"]}, ${curr_reminder["reminder"]} - from @${curr_reminder["remindee"]}`);
+		}
+		hannahbot_storage["reminders"].shift();
+		save_hannahbot_storage();
+		updatereminders();
+	}, Math.max(1000, curr_reminder["remind_time"])-Date.now());
+	return;
+}
+
+// saves the obj hannahbot_storage to file
 function save_hannahbot_storage() {
 	if (fs.writeFileSync('./hannahbot_storage.json', JSON.stringify(hannahbot_storage), 'utf-8')) {
 		return true
 	} else {
 		return false
 	}
-}
-
-function getRandomColorHex() {
-	colors = ['Blue', 'BlueViolet', 'CadetBlue', 'Chocolate', 'Coral', 'DodgerBlue', 'Firebrick', 'GoldenRod', 'Green', 'HotPink', 'OrangeRed', 'Red', 'SeaGreen', 'SpringGreen', 'YellowGreen' ] 
-	return colors[Math.floor(Math.random() * colors.length)];
 }
 
 function getTrueRandomColorHex() {
@@ -55,6 +86,7 @@ function getTrueRandomColorHex() {
     return color;
 }
 
+// returns a dhms time from a given ms
 function proper_date(time_in_ms){
 	var seconds = "";
 	var mins = "";
@@ -82,8 +114,28 @@ function proper_date(time_in_ms){
 	return `${days}${hours}${mins}${seconds}seconds`;
 }
 
+// returns ms from multiple number types. eg. 15secs => 15000
+function get_ms_from_time(time_unspecified){
+	var time_num = time_unspecified.split(/([^0-9]+|[^a-zA-Z]+)/)[1].trim();
+	var time_type = time_unspecified.split(/([^0-9]+|[^a-zA-Z]+)/)[3].trim();
+
+	if ((/^(s|secs?)/).test(time_type)){ 
+		return time_num*1000;
+	} else if ((/^(m|mins?)/).test(time_type)){
+		return time_num*60000;
+	} else if ((/^(h|hours?)/).test(time_type)){
+		return time_num*3600000;
+	} else if ((/^(d|days?)/).test(time_type)){
+		return time_num*86400000;
+	} else if ((/^(w|weeks?)/).test(time_type)){
+		return time_num*604800000;
+	}
+}
+
+// adds a unicode char to the end of every second message, to get past twitch spam protection
 function clientsay(channel_to_send_to, message){
-	channel_to_send_to = channel_to_send_to.toLowerCase();
+	channel_to_send_to = channel_to_send_to;
+	message = message.toString();
 	//find the channel in the array of channels
 	let channel_last_message_object = hannahbot_channels_last_message.find(o => o.channel === channel_to_send_to);
 	// if no channel found, create new one
@@ -107,8 +159,9 @@ function clientsay(channel_to_send_to, message){
 }
 
 const tmi = require('tmi.js');
+// initialise the account hannah_yee5
 const client = new tmi.Client({
-	options: { debug: true, messagesLogLevel: "info" },
+	options: { debug: true  },
 	connection: {
 		reconnect: true,
 		secure: true
@@ -120,8 +173,9 @@ const client = new tmi.Client({
 	channels: []
 });
 
+// initialise the account hahah_ye5
 const OPclient = new tmi.Client({
-	options: { },
+	options: { debug: true },
 	connection: {
 		reconnect: true,
 		secure: true
@@ -133,6 +187,7 @@ const OPclient = new tmi.Client({
 	channels: [ 'hahah_ye5' ]
 });
 
+// initialise the account hannah_copy
 const hannah_copy_client = new tmi.Client({
 	options: {},
 	connection: {
@@ -150,19 +205,16 @@ client.connect().catch(console.error);
 OPclient.connect().catch(console.error);
 hannah_copy_client.connect().catch(console.error);
 
-
+// informs chat and starts reminder loop on bot start
 client.on("connected", (OPclient, port) => {
-    client.say("hahah_ye5", `[INFO] hannahbot is back online HandsUp`);
+    //client.say("hahah_ye5", `[INFO] hannahbot is back online HandsUp`);
 
 	hannahbot_storage["channels"].forEach(channel_ => {
 		client.join(channel_); 
 	});
-	client.say("hahah_ye5", `[INFO] hannahbot has joined ${hannahbot_storage["channels"].length +1} channels`);
+	//client.say("hahah_ye5", `[INFO] hannahbot has joined ${hannahbot_storage["channels"].length +1} channels`);
 
-	
-	// setTimeout(() => {
-		
-	// }, timeout);
+	updatereminders();
 });
 
 
@@ -188,8 +240,8 @@ client.on('message', (channel, tags, message, self) => {
 	if(!(/^(\!hannahbot|\!?hhb)/).test(message.toLowerCase())) return;
 	if(tags.username.toLowerCase() === 'hannah_yee5') return;
 
-	// removes chatterino voodoo char
-	message = message.replace(/\u{E0000}/gu, '').trim();
+	// removes chatterino voodoo char and combines multiple spaces into one
+	message = message.replace(/\u{E0000}/gu, '').replace(/\s\s+/g, ' ').trim();
 
 	// creates array of args from the given command eg. !hhb list -> ['!hhb', 'list']
 	const command_args = message.toLowerCase().split(" ");
@@ -203,7 +255,7 @@ client.on('message', (channel, tags, message, self) => {
 
 	// commands available when hannahbot is disabled
 	// hannahbot info
-	if((/^(i|info|uptime|version)$/).test(command_args[1])) {
+	if((/^(i|info|uptime|version|status)$/).test(command_args[1])) {
 		var is_enabled = "disabled";
 		if (bot_enabled === true) is_enabled = "enabled" ;
 		clientsay(channel, `[INFO] hannahbot v1.0.5. - I was born ${ proper_date(Date.now()-bot_creation) } ago. - Currently ${is_enabled} - Uptime: ${ proper_date(Date.now()-last_restart) } FeelsStrongMan `);
@@ -344,8 +396,75 @@ client.on('message', (channel, tags, message, self) => {
 	}
 
 	// reminders command
-	if((/^remind(ers?)?$/).test(command_args[1])) { 
-		return;
+	if((/^remind$/).test(command_args[1])) {
+		if (command_args.length < 6) { // !hhb remind 
+			clientsay(channel,"[REM] Usage: !hannahbot remind [me|{user}] in ##[sec|min|hour|day] {message} ");
+			return;
+		}
+
+		var reminder_split_message = message.split(" ");
+
+		//remind yourself
+		if ((/^me$/).test(command_args[2]) && (/^i?n?$/).test(command_args[3])){ // !hhb remind me in
+			
+			if ((/^[0-9]+(s|secs?|m|mins?|h|hours?|d|days?)$/).test(command_args[4])) { // !hhb remind me in 123days
+				addreminder(channel, reminder_split_message[4], tags.username, tags.username, channel, get_ms_from_time(reminder_split_message[4])+Date.now(), reminder_split_message.slice(5).join(" "));
+				return;
+			}
+			if ((/^[0-9]+$/).test(command_args[4]) && (/^(s|secs?|m|mins?|h|hours?|d|days?)$/).test(command_args[5])){ // !hhb remind me in 123 days
+				if (command_args.length < 7) { 
+					clientsay(channel,"[REM] Usage: !hannahbot remind [me|{user}] in ##[sec|min|hour|day] {message} ");
+					return;
+				} else {
+					addreminder(channel, reminder_split_message.slice(4,6).join(""), tags.username, tags.username, channel, get_ms_from_time(reminder_split_message.slice(4,6).join(""))+Date.now(), reminder_split_message.slice(6).join(" "));
+					return;
+				}
+			} else {
+				clientsay(channel,"[REM] Usage: !hannahbot remind [me|{user}] in ##[sec|min|hour|day] {message} ");
+				return;
+			}
+		// remind another person
+		} else {
+			
+			if ((/^[0-9]+(s|secs?|m|mins?|h|hours?|d|days?)$/).test(command_args[4])) { // !hhb remind {person} in 123days
+				addreminder(channel, reminder_split_message[4], tags.username, command_args[2], channel, get_ms_from_time(reminder_split_message[4])+Date.now(), reminder_split_message.slice(5).join(" "));
+				return;
+			}
+			if ((/^[0-9]+$/).test(command_args[4]) && (/^(s|secs?|m|mins?|h|hours?|d|days?)$/).test(command_args[5])){ // !hhb remind {person} in 123 days
+				if (command_args.length < 7) { 
+					clientsay(channel,"[REM] Usage: !hannahbot remind [me|{user}] in ##[sec|min|hour|day] {message} ");
+					return;
+				} else {
+					addreminder(channel, reminder_split_message.slice(4,6).join(""), tags.username, command_args[2], channel, get_ms_from_time(reminder_split_message.slice(4,6).join(""))+Date.now(), reminder_split_message.slice(6).join(" "));
+					return;
+				}
+			} else {
+				clientsay(channel,"[REM] Usage: !hannahbot remind [me|{user}] in ##[sec|min|hour|day] {message} ");
+				return;
+			}
+			
+		}
+	}
+
+	//  command to list all your reminders
+	if((/^reminders$/).test(command_args[1])) { 
+		if((/^(list|mine)$/).test(command_args[2])) { 
+			
+			return;
+		}
+		var your_reminders = []; 
+		hannahbot_storage.reminders.forEach(reminder => {
+			if(reminder.remindee === tags.username.toLowerCase()){
+				your_reminders.push(reminder);
+			}
+		});
+		if (your_reminders.length === 0){
+			clientsay(channel, `[REM] You have no reminders, @${tags.username} `);
+			return;
+		} else {
+			clientsay(channel, `[REM] You have ${your_reminders.length} reminders due - first one in ${proper_date(your_reminders[0].remind_time - Date.now())}, @${tags.username} `);
+			return;
+		}
 	}
 
 	// if command was not found and channel is not hahah_ye5
@@ -389,6 +508,34 @@ client.on('message', (channel, tags, message, self) => {
 		if(hannahbot_storage["homies"].includes(tags.username.toLowerCase())){
 			OPclient.vip(channel, tags.username);
 			client.say('hahah_ye5', `[VIP] You have been VIP'd, @${tags.username}!`);
+		} else {
+			client.say('hahah_ye5', `[VIP] Sorry, you dont have permission to do that @${tags.username}!`);
+		}
+	}
+
+	// vip command 
+	if((/^vip$/).test(command_args[1])){
+		if (command_args.length <3){
+			client.say("hahah_ye5", "[VIP] Usage: !hannahbot vip {username} ");
+			return;
+		}
+		if(tags.mod === true){
+			OPclient.vip(channel, command_args[2]);
+			client.say('hahah_ye5', `[VIP] You have successfully given @${command_args[2]} VIP!`);
+		} else {
+			client.say('hahah_ye5', `[VIP] Sorry, you dont have permission to do that @${tags.username}!`);
+		}
+	}
+
+	// vip command 2
+	if((/^!vip$/).test(command_args[0])){
+		if (command_args.length <2){
+			client.say("hahah_ye5", "[VIP] Usage: !vip {username} ");
+			return;
+		}
+		if(tags.mod === true){
+			OPclient.vip(channel, command_args[1]);
+			client.say('hahah_ye5', `[VIP] You have successfully given @${command_args[1]} VIP!`);
 		} else {
 			client.say('hahah_ye5', `[VIP] Sorry, you dont have permission to do that @${tags.username}!`);
 		}
@@ -480,7 +627,8 @@ OPclient.on('message', (channel, tags, message, self) => {
 		const ledSite = "http://192.168.100.24/win"
 		var custom_colors = {
 			cum: [69,69,69],
-			bauke: [105,19,55] // #691337
+			bauke: [105,19,55], // #691337
+			hooyah: [42,04,20]
 		};
 		if (command_args.length < 2){
 			client.say('hahah_ye5', `[LED] Current colour: ${leds_color} Usage: !led {colour}`);
