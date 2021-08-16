@@ -18,7 +18,7 @@ Apply the correct auth-tokens:
 - Add the oauth token for your bot account to *TWITCH_OAUTH_TOKEN_2=""* (between the speechmarks)
 If you want to use your account as the bot, use the OAUTH token of your personal account for both.
 
-#Running
+# Running
 - Open terminal and `cd` into the folder where peepoBot is saved.
 - Run the following command:
 `node main.js`
