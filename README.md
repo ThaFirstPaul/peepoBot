@@ -4,14 +4,14 @@ PeepoBot is the leading bot in its class. That being the class of being donk.
 # Installation 
 ## Linux
 
-####Download and install node:
+Download and install node:
 https://github.com/nodejs/node#download
 
-####Install the requirements:
+Install the requirements:
 `npm install color-string dotenv reflect-metadata tmi.js xmlhttprequest`
 
 
-####Apply the correct auth-tokens:
+Apply the correct auth-tokens:
 - Rename *.env.example* to *.env* in the directory where you downloaded peepoBot
 - Open *.env*
 - Add the oauth token for your personal account to *TWITCH_OAUTH_TOKEN_1=""* (between the speechmarks)
