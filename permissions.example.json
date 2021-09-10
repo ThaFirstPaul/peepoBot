@@ -1,0 +1,27 @@
+{
+    
+    "all_permissions": [
+        "channels",
+        "colorchanger",
+        "commands",
+        "disable",
+        "enable",
+        "favorite",
+        "info",
+        "led",
+        "messageuuid",
+        "modme",
+        "remind",
+        "reminders",
+        "vipme",
+        "vip",
+        "test",
+        "wos"
+    ],
+    "user_permissions": [
+        {"hahah_yes": "*"},
+        {"hahah_mayb3": "*"}
+        
+    ],
+    "permissions_version": "beta 1.3"
+}
